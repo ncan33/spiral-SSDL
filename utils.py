@@ -9,6 +9,52 @@ import time
 import json
 import h5py
 
+def nufft_adj(kspace_data):
+    """
+    Kaiser-Bessel Adjoint NUFFT function.
+    
+    Args:
+    kspace_data (dict): Dictionary holding non-Cartesian k-space data,
+        trajectory, and ISMRMRD header. keys are 'kspace', 'traj', and
+        'metadata'
+
+    Returns:
+    image (ndarray): blah blah blah
+    """
+    import torchkbnufft as tkbn
+    from torch import from_numpy
+
+    # Define matrix size for recon
+    matrix_size = kspace_data['metadata']['ismrmrdHeader']['encoding']['reconSpace']['matrixSize']
+    im_size = (int(matrix_size['x']), int(matrix_size['y']))
+    grid_size = (2*int(matrix_size['x']), 2*int(matrix_size['y']))
+
+    # Get kspace and traj
+    kspace = kspace_data['kspace']
+    traj = kspace_data['traj'].astype(np.float32) # the astype is probably not necessary
+    
+    # Create batch dimension for traj
+    batch_size = kspace.shape[0]
+    traj_batch = np.stack([traj] * batch_size, axis=0)
+    
+    # Convert data from numpy.ndarray to torch.tensor
+    kspace = from_numpy(kspace)
+    traj_batch = from_numpy(traj_batch)
+    
+    # Calculate the density compensation function
+    dcomp = tkbn.calc_density_compensation_function(from_numpy(traj),
+                                                    im_size=im_size,
+                                                    grid_size=grid_size)
+
+    # Get tkbn adjoint nufft operator
+    adjkb_ob = tkbn.KbNufftAdjoint(im_size=im_size, grid_size=grid_size);
+    
+    # Perform adjoint nufft
+    image = adjkb_ob(kspace * dcomp, traj_batch);
+
+    return image.numpy()
+
+
 def spiral_to_undersampled(spiral_kspace_dict, R):
     """
     Undersamples the spiral kspace data with acceleration factor R.
@@ -78,7 +124,7 @@ def data_prep(fastMRI_path='/server/home/ncan/fastMRI', dtype='train', N=0, R=8,
     R (int): Acceleration factor.
     """
     data_dir = os.path.join(fastMRI_path, 'multicoil_' + dtype)
-    undersampled_dir = os.path.join(fastMRI_path, 'undersampled_' + dtype)
+    undersampled_dir = os.path.join(fastMRI_path, 'undersampled_' + dtype + '_R' + str(R))
     fully_sampled_dir = os.path.join(fastMRI_path, 'fully_sampled_' + dtype)
     
     # Check if directory exists, if not, create it
