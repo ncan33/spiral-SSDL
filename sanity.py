@@ -44,7 +44,7 @@ def num_coils_check(kspace, metadata):
 
 def matrix_size_check(kspace, metadata):
     """
-    Compares k-space matrix size to that of the metadata (a.k.a. header)
+    Compares zero-padded k-space matrix size to that of the metadata (a.k.a. header).
     
     Parameters:
     kspace (numpy.ndarray): k-space data
@@ -57,14 +57,14 @@ def matrix_size_check(kspace, metadata):
     metadata_matrix_size = (int(metadata['ismrmrdHeader']['encoding'] \
                                 ['reconSpace']['matrixSize']['x']),
                             int(metadata['ismrmrdHeader']['encoding'] \
-                                ['reconSpace']['matrixSize']['y']))
-
+                                ['reconSpace']['matrixSize']['x'])) # this is x on purpose
+                                                                    # kspace is zero padded
     kspace_matrix_size = (kspace.shape[2], kspace.shape[3])
 
     if kspace_matrix_size != metadata_matrix_size:
         error_msg = 'The k-space matrix size and metadata (header) matrix ' + \
             ' size do not match! \nkspace: ' + str(kspace_matrix_size) + \
-            '\nMetadata (reconSpace): ' + str(metadata_matrix_size)
+            '\nMetadata (encodedSpace): ' + str(metadata_matrix_size)
         raise Exception(error_msg)
     
     return {'x' : kspace_matrix_size[0], 'y' : kspace_matrix_size[1]}
