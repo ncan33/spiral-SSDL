@@ -180,7 +180,7 @@ def data_prep(fastMRI_path='/server/home/ncan/fastMRI', dtype='train', N=0, R=8,
         fully_sampled_path = os.path.join(fully_sampled_dir, fully_sampled_filename)
         undersampled_path = os.path.join(undersampled_dir, undersampled_filename) 
         
-        if not (os.path.exists(undersampled_path + '_kspace_CORRUPT.h5') and \
+        if not (os.path.exists(undersampled_path + '_kspace.h5') and \
                 os.path.exists(fully_sampled_path + '_kspace.h5')):
             
             fastMRI_data = read_fastmri_data(data_path, verbose=verbose)
@@ -253,13 +253,11 @@ def write_kspace_data(spiral_kspace_dict, undersampled_spiral_kspace_dict,
     with open((fully_sampled_path + '_metadata.json'), 'w') as file: # metadata (ISMRMRD header)
         json.dump(spiral_kspace_dict['metadata'], file)
     
-    print('Fully sampled data written!')
-    print(f"{(time.time() - start_time):.1f} seconds have passed.")
+    print('Fully sampled data written!' + f"{(time.time() - start_time):.1f} seconds have passed.")
 
     # ------------------------------------------------------------------------
     # Write undersampled kspace
     # ------------------------------------------------------------------------
-    print('Writing the undersampled data...')
     start_time = time.time()
     
     with h5py.File((undersampled_path + '_kspace.h5'), 'w') as f: # kspace
@@ -269,8 +267,7 @@ def write_kspace_data(spiral_kspace_dict, undersampled_spiral_kspace_dict,
     with open((undersampled_path + '_metadata.json'), 'w') as file: # metadata (ISMRMRD header)
         json.dump(undersampled_spiral_kspace_dict['metadata'], file)
 
-    print('Undersampled data written!')
-    print(f"{(time.time() - start_time):.1f} seconds have passed.")
+    print('Undersampled data written!'+ f"{(time.time() - start_time):.1f} seconds have passed.")
 
 def fastMRI_to_spiral(fastMRI_data, verbose=1):
     """
