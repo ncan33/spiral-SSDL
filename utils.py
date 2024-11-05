@@ -28,14 +28,14 @@ def nufft_adj(kspace_data, which_fov="half"):
     """
 
     if which_fov == "full":
-        space = "encoded"
+        reconSpace_size = kspace_data['metadata']['ismrmrdHeader']['encoding']['reconSpace']['matrixSize']['x']
+        matrix_size = {'x': reconSpace_size * 2, 'y': reconSpace_size * 2} # full FOV is double that of the reconSpace FOV
     elif which_fov == "half":
-        space = "recon"
+        matrix_size = kspace_data['metadata']['ismrmrdHeader']['encoding']['reconSpace']['matrixSize']
     else:
         raise ValueError('which_fov must be set to either "full" or "half"')
 
     # Define matrix size for recon
-    matrix_size = kspace_data['metadata']['ismrmrdHeader']['encoding'][space + 'Space']['matrixSize']
     im_size = (int(matrix_size['x']), int(matrix_size['y']))
     grid_size = (2*int(matrix_size['x']), 2*int(matrix_size['y']))
 

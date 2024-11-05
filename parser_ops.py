@@ -1,7 +1,7 @@
 import argparse
 
 def get_parser():
-    parser = argparse.ArgumentParser(description='SSDU: Self-Supervision via Data Undersampling ')
+    parser = argparse.ArgumentParser(description='SSDL: Self-Supervision via Data Undersampling ')
 
     # %% hyperparameters for the unrolled network
     parser.add_argument('--acc_rate', type=int, default=4,
